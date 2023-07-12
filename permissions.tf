@@ -15,9 +15,6 @@ locals {
     "secretmanager.viewer",
     "secretmanager.admin"
   ]
-  permissions_secrets_manager_env = [
-    # TODO: add support fo dynamic conditionals in permissions module.
-  ]
   permissions_non_sensitive_data = [
     "monitoring.viewer",
     "logging.viewer",
