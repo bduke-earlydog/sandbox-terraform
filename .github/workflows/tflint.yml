@@ -25,7 +25,7 @@ jobs:
     - uses: terraform-linters/tflint-load-config-action@v1
       name: Configure TFLint
       with:
-        source-repo: me/tflint-config
+        source-repo: bduke-earlydog/tflint-config
 
     - name: Initialize TFLint
       run: tflint --init
