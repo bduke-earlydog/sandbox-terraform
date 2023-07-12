@@ -30,10 +30,13 @@ jobs:
         key: ${{ runner.os }}-tflint-${{ hashFiles('.tflint.hcl') }}
 
     - name: Check plugins
-      run: ls -lha ~/.tflint.d/
+      run: ls -lha ~
 
     - name: Initialize TFLint
       run: tflint --init
+
+    - name: Check plugins
+      run: ls -lha ~/.tflint.d/
 
     - name: Run TFLint
       run: tflint --format=compact --config="$(pwd)/.tflint.hcl" --recursive
