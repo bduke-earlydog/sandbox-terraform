@@ -20,15 +20,17 @@ jobs:
       name: Retrieve shared TFLint config
       with:
         source-repo: bduke-earlydog/tflint-config
+        source-path: .tflint.hcl
+        destination-path: .tflint.hcl
 
     - uses: actions/cache@v3
       name: Cache plugin dir
       with:
         path: ~/.tflint.d/plugins
-        key: ${{ runner.os }}-tflint-${{ hashFiles('~/.tflint.hcl') }}
+        key: ${{ runner.os }}-tflint-${{ hashFiles('.tflint.hcl') }}
 
     - name: Initialize TFLint
       run: tflint --init
 
     - name: Run TFLint
-      run: tflint -f compact
+      run: tflint --format=compact --config="$(pwd)/.tflint.hcl" --recursive
