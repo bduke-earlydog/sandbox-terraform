@@ -11,21 +11,21 @@ jobs:
     - uses: actions/checkout@v3
       name: Checkout source code
 
-    - uses: actions/cache@v3
-      name: Cache plugin dir
-      with:
-        path: ~/.tflint.d/plugins
-        key: ubuntu-latest-tflint-${{ hashFiles('.tflint.hcl') }}
-
     - uses: terraform-linters/setup-tflint@v3
       name: Setup TFLint
       with:
         tflint_version: latest
 
     - uses: terraform-linters/tflint-load-config-action@v1
-      name: Configure TFLint
+      name: Retrieve shared TFLint config
       with:
         source-repo: bduke-earlydog/tflint-config
+
+    - uses: actions/cache@v3
+      name: Cache plugin dir
+      with:
+        path: ~/.tflint.d/plugins
+        key: ${{ runner.os }}-tflint-${{ hashFiles('.tflint.hcl') }}
 
     - name: Initialize TFLint
       run: tflint --init
