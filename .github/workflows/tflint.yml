@@ -29,6 +29,9 @@ jobs:
         path: ~/.tflint.d/plugins
         key: ${{ runner.os }}-tflint-${{ hashFiles('.tflint.hcl') }}
 
+    - name: Check plugins
+      run: ls -lha ~/.tflint.d/
+
     - name: Initialize TFLint
       run: tflint --init
 
