@@ -11,13 +11,6 @@ locals {
     "compute.osLogin",
     "compute.osAdminLogin"
   ]
-  permissions_secrets_manager_all = [
-    "secretmanager.viewer",
-    "secretmanager.admin"
-  ]
-  permissions_sensitive_data = [
-    "cloudsql.viewer"
-  ]
   permissions_admin = [
     "datamigration.admin",
     "storage.admin",
