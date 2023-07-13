@@ -32,8 +32,5 @@ jobs:
     - name: Initialize TFLint
       run: tflint --init
 
-    - name: ls GITHUB_WORKSPACE
-      run: ls -lha ${{ github.workspace }}
-
     - name: Run TFLint
-      run: tflint --format=compact --config="$(pwd)/.tflint.hcl"
+      run: tflint --format=compact --config="${{ github.workspace }}/.tflint.hcl"
