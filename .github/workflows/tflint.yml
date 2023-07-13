@@ -25,7 +25,7 @@ jobs:
       name: Cache plugin dir
       with:
         path: ~/.tflint.d/plugins
-        key: ${{ runner.os }}-tflint-${{ hashFiles('.tflint.hcl') }}
+        key: ${{ runner.os }}-tflint-${{ hashFiles('~/.tflint.hcl') }}
 
     - name: Check home dir
       run: ls -lha ~
@@ -34,7 +34,7 @@ jobs:
       run: tflint --init
 
     - name: Check plugins
-      run: ls -lha ~/.tflint.d/
+      run: ls -lha ~/.tflint.d/plugins/
 
     - name: Run TFLint
-      run: tflint --format=compact --config="$(pwd)/.tflint.hcl"
+      run: tflint --format=compact
