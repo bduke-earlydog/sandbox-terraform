@@ -27,8 +27,7 @@ locals {
   ]
   permissions_admin = [
     "datamigration.admin",
-    "storage.admin",
-
+    "storage.admin"
   ]
 }
 
