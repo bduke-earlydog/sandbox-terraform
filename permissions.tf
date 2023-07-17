@@ -19,7 +19,7 @@ locals {
 
 module "ops_team_permissions" {
   source  = "./group_permissions"
-  project = "sandbox-bradleyproject-8063"
+  project =      "sandbox-bradleyproject-8063"
   group   = "somegroup@lessbits.com"
   roles = [concat(
     local.permissions_admin,
