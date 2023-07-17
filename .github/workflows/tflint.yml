@@ -34,3 +34,6 @@ jobs:
 
     - name: Run TFLint
       run: tflint --format=compact --config="${{ github.workspace }}/.tflint.hcl"
+
+    - name: Terraform FMT check
+      run: terraform fmt -recursive -check .
