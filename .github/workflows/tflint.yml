@@ -23,6 +23,7 @@ jobs:
         source-repo: EarlyDog/terradog
         source-path: .tflint.hcl
         destination-path: .tflint.hcl
+        token: ${{ secrets.GITHUB_TOKEN }}
 
     - uses: actions/cache@v3
       name: Cache plugin dir
