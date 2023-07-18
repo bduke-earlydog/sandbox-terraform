@@ -19,7 +19,7 @@ jobs:
     - uses: terraform-linters/tflint-load-config-action@v1
       name: Retrieve shared TFLint config
       with:
-        source-repo: bduke-earlydog/tflint-config
+        source-repo: EarlyDog/terradog
         source-path: .tflint.hcl
         destination-path: .tflint.hcl
 
