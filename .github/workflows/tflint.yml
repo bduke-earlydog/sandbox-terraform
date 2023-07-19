@@ -23,7 +23,7 @@ jobs:
         source-repo: EarlyDog/terradog
         source-path: .tflint.hcl
         destination-path: .tflint.hcl
-        token: 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
+        token: ${{ secrets.PAT }}
 
     - uses: actions/cache@v3
       name: Cache plugin dir
