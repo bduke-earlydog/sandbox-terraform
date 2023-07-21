@@ -18,6 +18,7 @@ locals {
 
 
 
+
   permissions_non_sensitive_data = [
     "monitoring.viewer",
     "logging.viewer",
