@@ -2,10 +2,12 @@ FROM composer:latest as composer
 
 FROM php:8.2-apache as base
 COPY --from=composer /usr/bin/composer /usr/bin/composer
-RUN composer install
+RUN pwd
+RUN ls -lha
+CMD composer install
 
 FROM base as migrate
-RUN php artisan migrate
+CMD php artisan migrate
 
 FROM base as rollback
-RUN php artisan migrate:rollback
+CMD php artisan migrate:rollback

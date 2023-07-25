@@ -1,3 +1,5 @@
+
+
 resource "google_cloudbuild_trigger" "build_database_migration_image" {
   count = var.enabled == true ? 1 : 0
   name  = "database-migration-image-build-trigger"
@@ -20,13 +22,13 @@ resource "google_cloudbuild_trigger" "build_database_migration_image" {
     # Build the migrate container image.
     step {
       name = "gcr.io/cloud-builders/docker"
-      args = ["build", "--target", "migrate", "-t", "${var.image_name}:migrate", "-f", "dockerfile", "."]
+      args = ["build", "--target", "migrate", "-t", "gcr.io/${var.project_id}/${var.image_name}:migrate", "-f", "dockerfile", "."]
     }
 
     # Build the rollback container image.
     step {
       name = "gcr.io/cloud-builders/docker"
-      args = ["build", "--target", "rollback", "-t", "${var.image_name}:rollback", "-f", "dockerfile", "."]
+      args = ["build", "--target", "rollback", "-t", "gcr.io/${var.project_id}/${var.image_name}:rollback", "-f", "dockerfile", "."]
     }
 
     # Store the image artifacts in the google cloud registry.
