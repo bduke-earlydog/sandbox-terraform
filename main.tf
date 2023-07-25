@@ -13,3 +13,13 @@ provider "google" {
   project = "sandbox-bradleyproject-8063"
   region  = "us-central1"
 }
+
+module "database_migration_job" {
+  source = "./database_migration_job"
+  project_id = "sandbox-bradleyproject-8063"
+  enabled = true
+  github_owner = "bduke-earlydog"
+  github_repo = "sandbox-terraform"
+  github_branch = "dev"
+  image_name = "laravel-migration"
+}
