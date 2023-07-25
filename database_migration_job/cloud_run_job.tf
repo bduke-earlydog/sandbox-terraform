@@ -31,7 +31,7 @@ resource "google_cloud_run_v2_job" "database_migration_rollback" {
   template {
     template {
       containers {
-        image = "gcr.io/${var.project_id}/${var.image_name}:migrate"
+        image = "gcr.io/${var.project_id}/${var.image_name}:rollback"
       }
     }
   }
