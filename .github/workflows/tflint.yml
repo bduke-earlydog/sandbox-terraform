@@ -1,8 +1,0 @@
-name: Terraform Lint
-on:
-  pull_request:
-    branches: [main, stage]
-
-jobs:
-  tflint:
-    uses: bduke-earlydog/tflint-config/.github/workflows/tflint.yml@main
