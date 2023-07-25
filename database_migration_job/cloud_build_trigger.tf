@@ -31,7 +31,7 @@ resource "google_cloudbuild_trigger" "build_database_migration_image" {
       args = ["build", "--target", "rollback", "-t", "gcr.io/${var.project_id}/${var.image_name}:rollback", "-f", "dockerfile", "."]
     }
 
-    # Store the image artifacts in the google cloud registry.
+    # Store the image artifacts in the google container registry.
     images = ["gcr.io/${var.project_id}/${var.image_name}:migrate", "gcr.io/${var.project_id}/${var.image_name}:rollback"]
 
     # Send logs to the google logging service.
