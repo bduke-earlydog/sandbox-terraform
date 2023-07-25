@@ -1,0 +1,8 @@
+{
+    "name": "bduke-earlydog/test-build",
+    "description": "Just a test build",
+    "type": "project",
+    "require": {
+        "laravel/framework": "^8.40"
+    }
+}
