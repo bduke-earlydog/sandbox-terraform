@@ -20,6 +20,6 @@ module "database_migration_job" {
   enabled = true
   github_owner = "bduke-earlydog"
   github_repo = "sandbox-terraform"
-  github_branch = "dev"
+  github_branch = "composer"
   image_name = "laravel-migration"
 }
