@@ -15,11 +15,11 @@ provider "google" {
 }
 
 module "database_migration_job" {
-  source = "./database_migration_job"
-  project_id = "sandbox-bradleyproject-8063"
-  enabled = true
-  github_owner = "bduke-earlydog"
-  github_repo = "sandbox-terraform"
+  source        = "./database_migration_job"
+  project_id    = "sandbox-bradleyproject-8063"
+  enabled       = true
+  github_owner  = "bduke-earlydog"
+  github_repo   = "sandbox-terraform"
   github_branch = "laravel"
-  image_name = "laravel-migration"
+  image_name    = "laravel-migration"
 }
