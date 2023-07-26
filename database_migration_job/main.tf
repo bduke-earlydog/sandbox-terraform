@@ -1,3 +1,6 @@
+locals {
+  secrets = ["DB_DATABASE", "DB_HOST", "DB_PASSWORD", "DB_USERNAME"]
+}
 # Create a cloud build trigger to generate tagged container images for database migration and rollback.
 resource "google_cloudbuild_trigger" "build_database_migration_image" {
   count = var.enabled == true ? 1 : 0
@@ -50,7 +53,7 @@ resource "google_project_service" "cloudrun_api" {
 # Create job for starting the database migration.
 resource "google_cloud_run_v2_job" "database_migration_start" {
   name     = "database-migration-start"
-  project            = var.project_id
+  project  = var.project_id
   location = "us-central1"
 
   template {
@@ -69,13 +72,24 @@ resource "google_cloud_run_v2_job" "database_migration_start" {
 # Create job for rolling back database migration changes.
 resource "google_cloud_run_v2_job" "database_migration_rollback" {
   name     = "database-migration-rollback"
-  project            = var.project_id
+  project  = var.project_id
   location = "us-central1"
 
   template {
     template {
       containers {
         image = "gcr.io/${var.project_id}/${var.image_name}:rollback"
+        # Retrieve each secret in local.secrets from the secret manager, and make them available as an environment variables.
+        dynamic "env" {
+          for_each = local.secrets
+          name     = each.value
+          value_source {
+            secret_key_ref {
+              secret  = each.value
+              version = "latest"
+            }
+          }
+        }
       }
     }
   }
@@ -83,5 +97,6 @@ resource "google_cloud_run_v2_job" "database_migration_rollback" {
   lifecycle {
     ignore_changes = [launch_stage]
   }
+
 }
 
