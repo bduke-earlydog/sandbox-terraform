@@ -1,11 +1,10 @@
 FROM composer:latest as composer
 
-FROM php:8.2-apache as base
+FROM google/cloud-sdk:slim as base
 COPY --from=composer /usr/bin/composer /usr/bin/composer
-CMD composer install
-
-FROM base as migrate
-CMD php artisan migrate
-
-FROM base as rollback
-CMD php artisan migrate:rollback
+RUN apt-get update && apt-get install -y unzip
+RUN mkdir /opt/src/
+WORKDIR /opt/src/
+COPY ./* ./
+RUN chmod 777 download_secrets.sh
+CMD /opt/src/download_secrets.sh
