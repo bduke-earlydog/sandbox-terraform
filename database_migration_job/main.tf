@@ -1,21 +1,12 @@
-locals {
-  secrets = ["DB_DATABASE", "DB_HOST", "DB_PASSWORD", "DB_USERNAME"]
-}
-
-data "google_project" "project" {
-  project_id = var.project_id
-}
-
 # Assign Secret Manager Secret Accessor role for accessing the github ssh key.
 resource "google_project_iam_member" "secretacessor_role" {
   project = var.project_id
   role    = "roles/secretmanager.secretAccessor"
-  member  = "serviceAccount:${data.google_project.project.number}-compute@developer.gserviceaccount.com"
+  member  = "serviceAccount:${var.project_num}-compute@developer.gserviceaccount.com"
 }
 
 # Create a cloud build trigger to generate tagged container images for database migration and rollback.
 resource "google_cloudbuild_trigger" "build_database_migration_image" {
-  count = var.enabled == true ? 1 : 0
   name  = "database-migration-image-build-trigger"
 
   github {
@@ -36,11 +27,17 @@ resource "google_cloudbuild_trigger" "build_database_migration_image" {
     # Build the migrate container image.
     step {
       name = "gcr.io/cloud-builders/docker"
-      args = ["build", "--target", "base", "-t", "gcr.io/${var.project_id}/${var.image_name}:base", "-f", "dockerfile", "."]
+      args = ["build", "--target", "migrate", "-t", "gcr.io/${var.project_id}/${var.image_name}:migrate", "-f", "dockerfile", "."]
+    }
+
+    # Build the rollback container image.
+    step {
+      name = "gcr.io/cloud-builders/docker"
+      args = ["build", "--target", "rollback", "-t", "gcr.io/${var.project_id}/${var.image_name}:rollback", "-f", "dockerfile", "."]
     }
 
     # Store the image artifacts in the google container registry.
-    images = ["gcr.io/${var.project_id}/${var.image_name}:base"]
+    images = ["gcr.io/${var.project_id}/${var.image_name}:migrate", "gcr.io/${var.project_id}/${var.image_name}:rollback"]
 
     # Send logs to the google logging service.
     options {
@@ -60,12 +57,12 @@ resource "google_project_service" "cloudrun_api" {
 resource "google_cloud_run_v2_job" "database_migration_start" {
   name     = "database-migration-start"
   project  = var.project_id
-  location = "us-central1"
+  location = var.location
 
   template {
     template {
       containers {
-        image = "gcr.io/${var.project_id}/${var.image_name}:base"
+        image = "gcr.io/${var.project_id}/${var.image_name}:migrate"
       }
     }
   }
@@ -75,4 +72,21 @@ resource "google_cloud_run_v2_job" "database_migration_start" {
   }
 }
 
+# Create job for starting the database migration.
+resource "google_cloud_run_v2_job" "database_migration_rollback" {
+  name     = "database-migration-rollback"
+  project  = var.project_id
+  location = var.location
 
+  template {
+    template {
+      containers {
+        image = "gcr.io/${var.project_id}/${var.image_name}:rollback"
+      }
+    }
+  }
+
+  lifecycle {
+    ignore_changes = [launch_stage]
+  }
+}

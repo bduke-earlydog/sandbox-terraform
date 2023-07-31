@@ -3,9 +3,14 @@ variable "project_id" {
   description = "The google cloud project id."
 }
 
-variable "enabled" {
-  type        = bool
-  description = "Enable creation of the cloud build trigger and cloud run jobs for database migration."
+variable "project_num" {
+  type        = string
+  description = "The google cloud project number."
+}
+
+variable "location" {
+  type        = string
+  description = "The location to create resources in."
 }
 
 variable "github_owner" {

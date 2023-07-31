@@ -1,3 +1,9 @@
+locals {
+  project_id = "sandbox-bradleyproject-8063"
+  project_num = 663094282202
+  location   = "us-central1"
+}
+
 terraform {
   required_version = ">= 1.5.3"
 
@@ -10,14 +16,16 @@ terraform {
 }
 
 provider "google" {
-  project = "sandbox-bradleyproject-8063"
-  region  = "us-central1"
+  project = local.project_id
+  region  = local.location
 }
 
 module "database_migration_job" {
   source        = "./database_migration_job"
-  project_id    = "sandbox-bradleyproject-8063"
-  enabled       = true
+  count         = 1
+  project_id    = local.project_id
+  project_num   = local.project_num
+  location      = local.location
   github_owner  = "bduke-earlydog"
   github_repo   = "sandbox-terraform"
   github_branch = "laravel"
