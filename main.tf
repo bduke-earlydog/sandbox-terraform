@@ -1,104 +1,97 @@
 locals {
+  org_id       = "26105214336"
   project_id   = "sandbox-bradleyproject-8063"
-  project_num  = 663094282202
-  location     = "us-central1"
-  machine_type = "n1-standard-1"
+  project_name = "Bradley Project"
+  region       = "us-central1"
 }
 
 terraform {
-  required_version = ">= 1.5.3"
-
+  required_version = ">= 1.5.6"
   required_providers {
     google = {
       source  = "hashicorp/google"
-      version = "4.77.0"
+      version = "4.80.0"
     }
   }
 }
 
 provider "google" {
   project = local.project_id
-  region  = local.location
+  region  = local.region
 }
 
-resource "google_compute_network" "vpc" {
-  name                    = "${local.project_id}-vpc"
-  auto_create_subnetworks = false
-}
-
-resource "google_compute_subnetwork" "subnet" {
-  name          = "main-subnet"
-  ip_cidr_range = "10.4.0.0/20"
-  region        = local.location
-  network       = google_compute_network.vpc.id
-}
-
-# Set firewall rules
-resource "google_compute_firewall" "ssh_iap" {
-  project       = local.project_id
-  name          = "allow-ssh-iap"
-  description   = "Allow SSH connections from the IAP networks."
-  network       = google_compute_network.vpc.name
-  source_ranges = ["35.235.240.0/20"]
-  allow {
-    protocol = "tcp"
-    ports    = ["22"]
-  }
-}
-
-# resource "google_compute_instance" "test" {
-#   project = local.project_id
-#   zone = "${local.location}-a"
-#   machine_type = local.machine_type
-#   name = "test-machine"
-#   boot_disk {
-#     initialize_params {
-#       image = "ubuntu-os-cloud/ubuntu-2004-lts"
-#     }
-#   }
-#   network_interface {
-#     subnetwork = google_compute_subnetwork.subnet.id
-#   }
-#   metadata = {
-#     user-data = file("cloud-init.yaml")
-#   }
+# Using the google_project resource will create or update a GCP project.
+# I don't have sufficient permissions for this in the org.
+# Instead, I am using a data source for my existing sandbox project below.
+# resource "google_project" "project" {
+#   org_id     = local.org_id
+#   project_id = local.project_id
+#   name       = local.project_name
 # }
 
-locals {
-  database_map = {
-    "primary"  = 3306
-    "replica" = 3307
+data "google_project" "project" {
+  project_id = local.project_id
+}
+
+module "network" {
+  source     = "./modules/network"
+  project_id = local.project_id
+  region     = local.region
+  subnets = {
+    "compute" = "10.0.0.0/24"
+    "db"      = "10.0.1.0/24"
   }
+  nat_external_ip_count = 1
+}
 
-  # Convert the Terraform database to ports map into an associative Bash array, so that it can be iterated on in the startup script.
-  database_map_string = join(", ", [for name, port in local.database_map : "[\"${name}\"]=\"${port}\""])
+# Compute instance template
+# Instace group manager
+# Load balancer
+# Health check
+# Autoscaler
+# APIs
 
-  enable_maintenance_mode_script = templatefile("files/enable_maintenance_mode.sh.tpl", {
-    PROJECT = "${local.project_id}"
+locals {
+  some_script = templatefile("${path.root}/files/test/some_script_i_want.sh.tpl", {
+    PROJECT_ID = "${local.project_id}"
   })
-  disable_maintenance_mode_script = templatefile("files/disable_maintenance_mode.sh.tpl", {
-    PROJECT = "${local.project_id}"
-  })
-  startup_script = templatefile("files/startup_script.sh.tpl", {
-    PROJECT                         = "${local.project_id}"
-    DISABLE_MAINTENANCE_MODE_SCRIPT = "${local.disable_maintenance_mode_script}"
-    ENABLE_MAINTENANCE_MODE_SCRIPT  = "${local.enable_maintenance_mode_script}"
-    DATABASE_MAP_STRING             = "${local.database_map_string}"
+  startup_script = templatefile("${path.root}/files/test/startup_script.sh.tpl", {
+    REGION      = "${local.region}"
+    PROJECT     = "${local.project_id}"
+    SOME_SCRIPT = "${local.some_script}"
   })
 }
 
-resource "google_compute_instance" "test" {
-  project = local.project_id
-  zone = "${local.location}-a"
-  machine_type = local.machine_type
-  name = "test-machine"
-  boot_disk {
-    initialize_params {
-      image = "ubuntu-os-cloud/ubuntu-2004-lts"
+# TODO: add option to assign static external IP to instances.
+# https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_instance_template.html#nested_access_config
+module "test_mig" {
+  source       = "./modules/mig"
+  project_id   = local.project_id
+  region       = local.region
+  mig_zones    = ["${local.region}-a", "${local.region}-b"]
+  name         = "test"
+  tags         = ["test"]
+  machine_type = "e2-micro"
+  disks = [
+    {
+      "image" = "ubuntu-os-cloud/ubuntu-2004-lts"
+      "boot"  = true
+      "size"  = 10
     }
-  }
-  network_interface {
-    subnetwork = google_compute_subnetwork.subnet.id
-  }
-  metadata_startup_script = local.startup_script
+  ]
+  subnet                   = module.network.subnet_ids.compute
+  service_account_roles    = ["roles/compute.instanceAdmin.v1", "roles/compute.osAdminLogin", "roles/cloudsql.client", "roles/secretmanager.secretAccessor", "roles/iam.serviceAccountUser"]
+  service_account_scopes   = ["cloud-platform"]
+  service_account_users    = ["bradley@lessbits.com"]
+  service_account_groups   = []
+  update_type              = "OPPORTUNISTIC"
+  update_action            = "REPLACE"
+  update_surge_fixed       = 2
+  update_unavailable_fixed = 0
+  update_on_repair         = "YES"
+  scale_min                = 1
+  scale_max                = 1
+  scale_cooldown           = 60
+  scale_cpu_target         = 0.7
+  startup_script           = local.startup_script
 }
